@@ -2,8 +2,11 @@ using System;
 
 class Program
 {
-    static char[,] laby = {
-        { '█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█'},
+    static char[,] laby = new char[30,30]
+    {
+        // (copie ici le labyrinthe 30x30 avec '█', ' ', 'S')
+        // je simplifie l’exemple, mais tu peux réutiliser ton labyrinthe existant
+          { '█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█'},
         { '█',' ',' ',' ',' ',' ','█',' ',' ',' ',' ',' ',' ',' ','█',' ',' ',' ',' ',' ','█',' ',' ',' ',' ',' ',' ',' ',' ','█'},
         { '█',' ','█','█','█',' ','█',' ','█','█','█','█',' ',' ','█',' ','█','█','█',' ','█',' ','█','█','█','█','█',' ',' ','█'},
         { '█',' ','█',' ',' ',' ','█',' ',' ',' ',' ','█',' ',' ','█',' ',' ',' ',' ',' ','█',' ',' ',' ',' ',' ','█',' ',' ','█'},
@@ -38,15 +41,16 @@ class Program
     static int playerX = 1;
     static int playerY = 1;
 
+    const int viewSize = 5; // 5 cases autour → 11x11 total
+
     static void Main()
     {
-        Console.CursorVisible = false; // cache le curseur
+        Console.CursorVisible = false;
 
         while (true)
         {
-            Draw(); // affiche labyrinthe
+            Draw();
 
-            // Lecture touche
             ConsoleKey key = Console.ReadKey(true).Key;
             int nextX = playerX;
             int nextY = playerY;
@@ -59,13 +63,11 @@ class Program
                 case ConsoleKey.RightArrow: nextX++; break;
             }
 
-            // Vérifie si on peut marcher
             if (laby[nextY, nextX] != '█')
             {
                 playerX = nextX;
                 playerY = nextY;
 
-                // Vérifie sortie
                 if (laby[playerY, playerX] == 'S')
                 {
                     Console.Clear();
@@ -75,21 +77,25 @@ class Program
                 }
             }
 
-            // Nettoie l’écran avant prochaine frame
             Console.SetCursorPosition(0, 0);
         }
     }
 
     static void Draw()
     {
-        for (int y = 0; y < laby.GetLength(0); y++)
+        for (int y = playerY - viewSize; y <= playerY + viewSize; y++)
         {
-            for (int x = 0; x < laby.GetLength(1); x++)
+            for (int x = playerX - viewSize; x <= playerX + viewSize; x++)
             {
-                if (x == playerX && y == playerY)
-                    Console.Write('P'); // joueur
+                if (y < 0 || y >= laby.GetLength(0) || x < 0 || x >= laby.GetLength(1))
+                {
+                    Console.Write("  "); // vide si hors limites
+                }
                 else
-                    Console.Write(laby[y, x]);
+                {
+                    string c = (x == playerX && y == playerY) ? "PP" : $"{laby[y, x]}{laby[y, x]}";
+                    Console.Write(c);
+                }
             }
             Console.WriteLine();
         }
