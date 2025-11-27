@@ -4,19 +4,18 @@ class Program
 {
     static char[,] laby = new char[30,30]
     {
-        // (copie ici le labyrinthe 30x30 avec '█', ' ', 'S')
-        // je simplifie l’exemple, mais tu peux réutiliser ton labyrinthe existant
-          { '█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█'},
+        // Exemple simplifié avec quelques torches 'T' et sortie 'S'
+        { '█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█','█'},
         { '█',' ',' ',' ',' ',' ','█',' ',' ',' ',' ',' ',' ',' ','█',' ',' ',' ',' ',' ','█',' ',' ',' ',' ',' ',' ',' ',' ','█'},
-        { '█',' ','█','█','█',' ','█',' ','█','█','█','█',' ',' ','█',' ','█','█','█',' ','█',' ','█','█','█','█','█',' ',' ','█'},
+        { '█','T','█','█','█',' ','█',' ','█','█','█','█',' ',' ','█',' ','█','█','█',' ','█',' ','█','█','█','█','█',' ',' ','█'},
         { '█',' ','█',' ',' ',' ','█',' ',' ',' ',' ','█',' ',' ','█',' ',' ',' ',' ',' ','█',' ',' ',' ',' ',' ','█',' ',' ','█'},
         { '█',' ','█',' ','█','█','█','█','█','█',' ','█','█','█','█','█','█',' ','█','█','█',' ','█','█','█',' ','█',' ',' ','█'},
         { '█',' ',' ',' ','█',' ',' ',' ',' ','█',' ',' ',' ',' ',' ',' ',' ',' ','█',' ',' ',' ',' ','█',' ',' ','█',' ',' ','█'},
         { '█','█','█',' ','█',' ','█','█',' ','█','█','█','█','█','█','█',' ','█','█','█','█','█','█',' ','█',' ',' ',' ',' ','█'},
-        { '█',' ',' ',' ','█',' ',' ','█',' ',' ',' ',' ',' ',' ',' ','█',' ',' ',' ',' ',' ','█',' ',' ','█','█','█','█',' ','█'},
+        { '█',' ',' ',' ','█','T',' ','█',' ',' ',' ',' ',' ',' ',' ','█',' ',' ',' ',' ',' ','█',' ',' ','█','█','█','█',' ','█'},
         { '█',' ','█','█','█','█',' ','█','█','█','█','█','█','█',' ','█','█','█','█',' ','█','█',' ',' ',' ',' ',' ','█',' ','█'},
         { '█',' ',' ',' ',' ','█',' ',' ',' ',' ',' ',' ',' ','█',' ',' ',' ',' ',' ',' ',' ',' ','█','█','█','█',' ','█',' ','█'},
-        { '█',' ','█','█',' ','█','█','█',' ','█','█','█',' ','█',' ','█','█','█',' ','█','█','█',' ',' ',' ','█',' ','█',' ','█'}, // Attention: Le '#' était présent ici dans ton code, je l'ai laissé.
+        { '█',' ','█','█','T','█','█','█',' ','█','█','█',' ','█',' ','█','█','█',' ','█','█','█',' ',' ',' ','█',' ','█',' ','█'}, // Attention: Le '#' était présent ici dans ton code, je l'ai laissé.
         { '█',' ',' ','█',' ',' ',' ','█',' ',' ',' ',' ',' ','█',' ',' ',' ',' ',' ',' ',' ','█',' ','█',' ','█',' ','█',' ','█'},
         { '█','█',' ','█','█','█',' ','█','█','█','█',' ','█','█','█','█','█',' ','█','█','█','█','█',' ','█',' ','█',' ',' ','█'},
         { '█',' ',' ',' ',' ','█',' ',' ',' ',' ','█',' ',' ',' ',' ',' ','█',' ',' ',' ',' ',' ',' ',' ','█',' ',' ',' ',' ','█'},
@@ -41,7 +40,10 @@ class Program
     static int playerX = 1;
     static int playerY = 1;
 
-    const int viewSize = 5; // 5 cases autour → 11x11 total
+    const int viewSize = 5; // 11x11 vue
+    static int torchRange = 5;
+    static int torchPower = 0; // commence sans torche
+    static bool torchOn = false;
 
     static void Main()
     {
@@ -68,6 +70,23 @@ class Program
                 playerX = nextX;
                 playerY = nextY;
 
+                // Ramassage torche
+                if (laby[playerY, playerX] == 'T')
+                {
+                    torchPower = torchRange;
+                    torchOn = true;
+                    laby[playerY, playerX] = ' ';
+                }
+
+                // Décrémentation torche
+                if (torchOn)
+                {
+                    torchPower--;
+                    if (torchPower <= 0)
+                        torchOn = false;
+                }
+
+                // Vérifie sortie
                 if (laby[playerY, playerX] == 'S')
                 {
                     Console.Clear();
@@ -89,12 +108,32 @@ class Program
             {
                 if (y < 0 || y >= laby.GetLength(0) || x < 0 || x >= laby.GetLength(1))
                 {
-                    Console.Write("  "); // vide si hors limites
+                    Console.Write("  "); // vide hors limites
                 }
                 else
                 {
-                    string c = (x == playerX && y == playerY) ? "PP" : $"{laby[y, x]}{laby[y, x]}";
-                    Console.Write(c);
+                    bool visible = false;
+
+                    if (torchOn)
+                    {
+                        // simple ligne droite vision: si dans carré torchRange
+                        if (Math.Abs(x - playerX) <= torchPower && Math.Abs(y - playerY) <= torchPower)
+                            visible = true;
+                    }
+                    else
+                    {
+                        // vision autour du joueur sans torche
+                        if (Math.Abs(x - playerX) <= 1 && Math.Abs(y - playerY) <= 1)
+                            visible = true;
+                    }
+
+                    if (visible)
+                    {
+                        string c = (x == playerX && y == playerY) ? "PP" : $"{laby[y, x]}{laby[y, x]}";
+                        Console.Write(c);
+                    }
+                    else
+                        Console.Write("  "); // non visible
                 }
             }
             Console.WriteLine();
