@@ -1,2 +1,1 @@
-int A = 53
-int B = 5
+Console.WriteLine("Hello World");
